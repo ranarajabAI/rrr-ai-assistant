@@ -1,86 +1,138 @@
 
 import streamlit as st
+import re
 from pypdf import PdfReader
 from docx import Document
-from io import BytesIO
+from PIL import Image
 
 st.set_page_config(
     page_title="RRR AI Assistant",
     page_icon="🤖",
-    layout="wide"
+    layout="centered"
 )
 
 st.title("🤖 RRR AI Assistant")
-st.caption("Your personal AI assistant")
-
-with st.sidebar:
-    st.header("Your Assistant")
-    st.write("Upload documents, images or record your voice.")
-
-    uploaded_file = st.file_uploader(
-        "Upload a file",
-        type=["pdf", "txt", "docx", "png", "jpg", "jpeg"]
-    )
-
-    if uploaded_file:
-        file_name = uploaded_file.name
-        st.success(f"Uploaded: {file_name}")
-
-        if file_name.endswith(".pdf"):
-            reader = PdfReader(uploaded_file)
-            text = "\n".join(
-                page.extract_text() or ""
-                for page in reader.pages
-            )
-            st.text_area("PDF text", text, height=200)
-
-        elif file_name.endswith(".txt"):
-            text = uploaded_file.getvalue().decode(
-                "utf-8", errors="replace"
-            )
-            st.text_area("File text", text, height=200)
-
-        elif file_name.endswith(".docx"):
-            doc = Document(uploaded_file)
-            text = "\n".join(
-                p.text for p in doc.paragraphs
-            )
-            st.text_area("Document text", text, height=200)
-
-        elif file_name.lower().endswith(
-            (".png", ".jpg", ".jpeg")
-        ):
-            st.image(uploaded_file, use_container_width=True)
-
-    st.divider()
-    st.subheader("Voice input")
-    audio = st.audio_input("Record your voice")
-
-    if audio:
-        st.audio(audio)
+st.caption("Your document-based assistant")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if "document_text" not in st.session_state:
+    st.session_state.document_text = ""
+
+if st.sidebar.button("➕ New Chat"):
+    st.session_state.messages = []
+    st.rerun()
+
+st.sidebar.header("📁 Upload Files")
+
+files = st.sidebar.file_uploader(
+    "Upload PDF, DOCX, TXT or image",
+    type=["pdf", "docx", "txt", "png", "jpg", "jpeg"],
+    accept_multiple_files=True
+)
+
+all_text = []
+
+if files:
+    for file in files:
+        name = file.name.lower()
+
+        try:
+            if name.endswith(".pdf"):
+                reader = PdfReader(file)
+                text = "\n".join(
+                    page.extract_text() or ""
+                    for page in reader.pages
+                )
+                all_text.append(text)
+
+            elif name.endswith(".docx"):
+                doc = Document(file)
+                text = "\n".join(
+                    paragraph.text
+                    for paragraph in doc.paragraphs
+                )
+                all_text.append(text)
+
+            elif name.endswith(".txt"):
+                all_text.append(
+                    file.getvalue().decode("utf-8", errors="ignore")
+                )
+
+            elif name.endswith((".png", ".jpg", ".jpeg")):
+                image = Image.open(file)
+                st.sidebar.image(
+                    image,
+                    caption=file.name,
+                    use_container_width=True
+                )
+
+        except Exception as error:
+            st.sidebar.error(f"Could not read {file.name}: {error}")
+
+    st.session_state.document_text = "\n".join(all_text)
+
+if st.session_state.document_text:
+    st.success("Document text loaded successfully!")
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.write(message["content"])
+        st.markdown(message["content"])
 
-prompt = st.chat_input("Ask RRR AI Assistant...")
+question = st.chat_input("Ask a question about your document...")
 
-if prompt:
+def search_document(question, document):
+    sentences = re.split(r'(?<=[.!?])\s+|\n+', document)
+
+    keywords = [
+        word.lower()
+        for word in re.findall(r'\w+', question)
+        if len(word) > 2
+    ]
+
+    results = []
+
+    for sentence in sentences:
+        sentence_lower = sentence.lower()
+        score = sum(
+            1 for word in keywords
+            if word in sentence_lower
+        )
+
+        if score > 0:
+            results.append((score, sentence.strip()))
+
+    results.sort(key=lambda item: item[0], reverse=True)
+
+    if not results:
+        return "I could not find a matching answer in your uploaded document."
+
+    answer = "\n\n".join(
+        sentence for score, sentence in results[:5]
+    )
+
+    return "Here are the most relevant passages:\n\n" + answer
+
+if question:
     st.session_state.messages.append({
         "role": "user",
-        "content": prompt
+        "content": question
     })
 
     with st.chat_message("user"):
-        st.write(prompt)
+        st.markdown(question)
 
-    answer = (
-        "Welcome! Your chatbot interface is working. "
-        "The AI model connection will be added next."
-    )
+    if st.session_state.document_text.strip():
+        answer = search_document(
+            question,
+            st.session_state.document_text
+        )
+    else:
+        answer = (
+            "Please upload a PDF, DOCX or TXT document first. "
+            "I can search its text to find relevant passages."
+        )
 
     st.session_state.messages.append({
         "role": "assistant",
@@ -88,5 +140,7 @@ if prompt:
     })
 
     with st.chat_message("assistant"):
-        st.write(answer)
-        
+        st.markdown(answer)
+
+st.sidebar.divider()
+st.sidebar.caption("RRR AI Innovation Lab")
