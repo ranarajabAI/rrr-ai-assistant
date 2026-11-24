@@ -54,12 +54,105 @@ if uploaded_files:
                 )
 
             elif filename.endswith(".txt"):
-                content = file.getvalue().decode(
-                    "utf-8", errors="ignore"
-                )
+                
+def make_paragraphs(text):
+    # Combine PDF lines into readable paragraphs
+    text = text.replace("\r", "")
+    blocks = re.split(r"\n\s*\n", text)
 
-            elif filename.endswith((".png", ".jpg", ".jpeg")):
-                picture = Image.open(file)
+    paragraphs = []
+
+    for block in blocks:
+        block = re.sub(r"\s+", " ", block).strip()
+
+        if len(block) > 30:
+            paragraphs.append(block)
+
+    # Fallback for PDFs without paragraph spacing
+    if not paragraphs:
+        words = text.split()
+        for i in range(0, len(words), 100):
+            chunk = " ".join(words[i:i+100])
+            if chunk:
+                paragraphs.append(chunk)
+
+    return paragraphs
+
+
+def search_documents(question, documents):
+    stopwords = {
+        "the", "is", "are", "was", "were", "what",
+        "why", "how", "when", "where", "who",
+        "explain", "describe", "tell", "me", "about",
+        "give", "please", "and", "for", "with",
+        "from", "this", "that", "complete", "details",
+        "detailed", "information", "now", "summarize",
+        "summary", "chapter", "make", "provide", "full"
+    }
+
+    keywords = [
+        word.lower()
+        for word in re.findall(r"\w+", question)
+        if len(word) > 2 and word.lower() not in stopwords
+    ]
+
+    all_paragraphs = []
+
+    for document in documents:
+        paragraphs = make_paragraphs(document["text"])
+
+        for paragraph in paragraphs:
+            all_paragraphs.append({
+                "source": document["name"],
+                "text": paragraph
+            })
+
+    if not all_paragraphs:
+        return "I couldn't extract readable text from your document."
+
+    # General requests: show the beginning of the document
+    if not keywords:
+        answer = "## Relevant content from your document\n\n"
+
+        for item in all_paragraphs[:8]:
+            answer += (
+                f"**Source:** {item['source']}\n\n"
+                f"{item['text']}\n\n---\n\n"
+            )
+
+        return answer
+
+    matches = []
+
+    for item in all_paragraphs:
+        lower = item["text"].lower()
+
+        score = sum(
+            lower.count(word) for word in keywords
+        )
+
+        if score > 0:
+            matches.append((score, item))
+
+    matches.sort(key=lambda x: x[0], reverse=True)
+
+    if not matches:
+        return (
+            "I couldn't find that topic in your document. "
+            "Try using a topic name that appears in the PDF."
+        )
+
+    answer = "## Detailed passages from your document\n\n"
+
+    for number, (score, item) in enumerate(matches[:8], 1):
+        answer += (
+            f"### Section {number}\n"
+            f"**Source:** {item['source']}\n\n"
+            f"{item['text']}\n\n---\n\n"
+        )
+
+    return answer
+    .open(file)
                 st.sidebar.image(
                     picture,
                     caption=file.name,
