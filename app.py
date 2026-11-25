@@ -71,27 +71,24 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
+# ---------------- MAIN HEADER ----------------
 
-st.markdown(
-    """
-    <div style="
-        padding: 20px 10px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #162338, #0D9488);
-        text-align: center;
-        margin-bottom: 20px;
-    ">
-        <h1 style="color:white;">
-            🤖 RRR AI Assistant
-        </h1>
-        <p style="color:#E0F2FE;">
-            AI Innovation • Smart Assistance
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<div style="
+    padding: 25px 10px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #162338, #0D9488);
+    text-align: center;
+    margin-bottom: 20px;
+">
+    <h1 style="color:white;">
+        RRR AI Assistant
+    </h1>
+    <p style="color:#E0F2FE;">
+        AI Innovation • Smart Assistance
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------- SESSION STATE ----------------
 
@@ -105,18 +102,25 @@ if "documents" not in st.session_state:
 
 with st.sidebar:
 
-    st.markdown("# 🧠 RRR AI")
+    # LOGO
+    st.image(
+        "rrr_logo_808x808_edited.jpg",
+        width=180
+    )
 
-    st.caption("AI Assistant")
+    st.markdown("## RRR AI")
+    st.caption("AI Innovation • Smart Assistance")
 
     st.divider()
 
+    # NEW CHAT
     if st.button("➕ New Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
     st.divider()
 
+    # DOCUMENT UPLOAD
     st.subheader("📁 Documents")
 
     uploaded_files = st.file_uploader(
@@ -152,14 +156,17 @@ with st.sidebar:
 
             st.warning("Upload documents first.")
 
-    st.divider()
-
+    # DOCUMENT COUNT
     st.metric(
         "Document Sections",
         len(st.session_state.documents)
     )
 
-    if st.button("🗑️ Clear Documents", use_container_width=True):
+    # CLEAR DOCUMENTS
+    if st.button(
+        "🗑️ Clear Documents",
+        use_container_width=True
+    ):
 
         st.session_state.documents = []
 
@@ -167,17 +174,9 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown(
-        """
-        <div style="text-align:center;">
-            <p>RRR AI Assistant</p>
-            <small>AI Innovation Lab</small>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.caption("RRR AI Assistant | AI Innovation Lab")
 
-# ---------------- CHAT HISTORY ----------------
+# ---------------- DISPLAY CHAT HISTORY ----------------
 
 for message in st.session_state.messages:
 
@@ -193,6 +192,7 @@ prompt = st.chat_input(
 
 if prompt:
 
+    # USER MESSAGE
     st.session_state.messages.append({
         "role": "user",
         "content": prompt
@@ -202,6 +202,7 @@ if prompt:
 
         st.markdown(prompt)
 
+    # ASSISTANT RESPONSE
     with st.chat_message("assistant"):
 
         with st.spinner("Preparing response..."):
@@ -222,6 +223,7 @@ if prompt:
 
             st.markdown(response)
 
+    # SAVE RESPONSE
     st.session_state.messages.append({
         "role": "assistant",
         "content": response
