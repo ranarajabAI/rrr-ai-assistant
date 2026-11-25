@@ -36,6 +36,7 @@ for key, value in defaults.items():
 
 st.markdown("""
 <style>
+
 .stApp {
     background-color: #07111F;
     color: #EAF6FF;
@@ -108,12 +109,28 @@ hr {
 
 LOGO_FILE = "rrr_brain_logo.png"
 
-def show_logo(width):
+def show_logo(width=180):
+
     try:
         st.image(LOGO_FILE, width=width)
+
     except Exception:
-        st.markdown("## 🧠 RRR AI")
-        st.caption("Upload rrr_brain_logo.png to GitHub")
+
+        st.markdown(
+            """
+            <div style="
+                text-align:center;
+                padding:15px;
+                border:1px solid #087EAA;
+                border-radius:15px;
+                background:#10243B;
+            ">
+                <div style="font-size:60px;">🧠</div>
+                <h2 style="color:#00E5FF;">RRR</h2>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # ==================================================
 # SIDEBAR
@@ -128,6 +145,8 @@ with st.sidebar:
 
     st.divider()
 
+    # NEW CHAT
+
     if st.button("➕ New Chat", use_container_width=True):
 
         st.session_state.messages = []
@@ -137,6 +156,8 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
+
+    # NAVIGATION
 
     st.markdown("### Navigation")
 
@@ -158,6 +179,8 @@ with st.sidebar:
 
     st.divider()
 
+    # DOCUMENT UPLOAD
+
     st.markdown("### 📁 Documents")
 
     uploaded_files = st.file_uploader(
@@ -175,7 +198,9 @@ with st.sidebar:
             with st.spinner("Reading your documents..."):
 
                 for uploaded_file in uploaded_files:
+
                     chunks = prepare_document(uploaded_file)
+
                     all_chunks.extend(chunks)
 
             st.session_state.documents = all_chunks
@@ -183,6 +208,7 @@ with st.sidebar:
             st.success("Documents processed successfully!")
 
         else:
+
             st.warning("Please upload files first.")
 
     st.metric(
@@ -190,9 +216,12 @@ with st.sidebar:
         len(st.session_state.documents)
     )
 
+    # CLEAR DOCUMENTS
+
     if st.button("🗑️ Clear Documents", use_container_width=True):
 
         st.session_state.documents = []
+
         st.rerun()
 
     st.divider()
@@ -200,28 +229,39 @@ with st.sidebar:
     st.caption("RRR AI Innovation Lab")
 
 # ==================================================
-# MAIN HEADER WITH BRAIN LOGO
+# MAIN HEADER
 # ==================================================
 
-header_logo, header_text = st.columns([1, 4])
+header_logo, header_text = st.columns([1, 5])
 
 with header_logo:
-    show_logo(150)
+
+    show_logo(200)
 
 with header_text:
 
-    st.markdown("")
-
-    st.title("RRR AI Assistant")
-
     st.markdown(
-        "<span style='color:#00E5FF;'>"
-        "AI Innovation • Smart Assistance"
-        "</span>",
+        """
+        <div style="
+            background:linear-gradient(120deg,#0D1B2E,#003F5C,#087EAA);
+            border:1px solid #00BCD4;
+            border-radius:22px;
+            padding:35px 20px;
+            text-align:center;
+        ">
+            <h1 style="color:white;">
+                RRR <span style="color:#00E5FF;">AI Assistant</span>
+            </h1>
+
+            <p style="color:#C8E9FF;">
+                AI Innovation • Smart Assistance
+            </p>
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-st.divider()
+st.write("")
 
 # ==================================================
 # QUICK ACTIONS
@@ -234,25 +274,33 @@ if st.session_state.active_page == "Chat":
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
+
         if st.button("💬 Smart Chat", use_container_width=True):
+
             st.session_state.pending_prompt = (
                 "Help me explore what you can do."
             )
 
     with col2:
+
         if st.button("📄 Document AI", use_container_width=True):
+
             st.session_state.pending_prompt = (
                 "Help me understand a document."
             )
 
     with col3:
+
         if st.button("💻 Help with Code", use_container_width=True):
+
             st.session_state.pending_prompt = (
                 "Help me write or understand code."
             )
 
     with col4:
+
         if st.button("🌟 Explain a Topic", use_container_width=True):
+
             st.session_state.pending_prompt = (
                 "Explain an interesting topic to me."
             )
@@ -283,20 +331,16 @@ if (
 
         with col1:
 
-            if st.button(
-                "✨ Explain a topic",
-                use_container_width=True
-            ):
+            if st.button("✨ Explain a topic", use_container_width=True):
+
                 st.session_state.pending_prompt = (
                     "Explain an interesting topic."
                 )
 
         with col2:
 
-            if st.button(
-                "📚 Help me study",
-                use_container_width=True
-            ):
+            if st.button("📚 Help me study", use_container_width=True):
+
                 st.session_state.pending_prompt = (
                     "Help me study a topic."
                 )
@@ -305,20 +349,16 @@ if (
 
         with col3:
 
-            if st.button(
-                "💻 Help me code",
-                use_container_width=True
-            ):
+            if st.button("💻 Help me code", use_container_width=True):
+
                 st.session_state.pending_prompt = (
                     "Help me with programming."
                 )
 
         with col4:
 
-            if st.button(
-                "💡 Generate ideas",
-                use_container_width=True
-            ):
+            if st.button("💡 Generate ideas", use_container_width=True):
+
                 st.session_state.pending_prompt = (
                     "Give me creative project ideas."
                 )
@@ -336,6 +376,7 @@ if st.session_state.active_page == "History":
         for message in st.session_state.messages:
 
             with st.chat_message(message["role"]):
+
                 st.markdown(message["content"])
 
     else:
@@ -391,6 +432,7 @@ elif st.session_state.active_page == "Settings":
     if st.button("Clear Chat History"):
 
         st.session_state.messages = []
+
         st.rerun()
 
 # ==================================================
@@ -404,6 +446,7 @@ if st.session_state.active_page == "Chat":
     for message in st.session_state.messages:
 
         with st.chat_message(message["role"]):
+
             st.markdown(message["content"])
 
     # CHAT INPUT
@@ -412,14 +455,15 @@ if st.session_state.active_page == "Chat":
         "Ask RRR AI Assistant anything..."
     )
 
-    # QUICK ACTION PROMPTS
+    # QUICK ACTION PROMPT
 
     if st.session_state.pending_prompt:
 
         prompt = st.session_state.pending_prompt
+
         st.session_state.pending_prompt = None
 
-    # GENERATE RESPONSE
+    # PROCESS PROMPT
 
     if prompt:
 
@@ -429,7 +473,10 @@ if st.session_state.active_page == "Chat":
         })
 
         with st.chat_message("user"):
+
             st.markdown(prompt)
+
+        # AI RESPONSE
 
         with st.chat_message("assistant"):
 
@@ -450,6 +497,8 @@ if st.session_state.active_page == "Chat":
                 )
 
                 st.markdown(response)
+
+        # SAVE RESPONSE
 
         st.session_state.messages.append({
             "role": "assistant",
