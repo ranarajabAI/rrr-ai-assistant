@@ -7,25 +7,109 @@ from document_processor import (
     search_documents
 )
 
+# ---------------- PAGE CONFIG ----------------
+
 st.set_page_config(
     page_title="RRR AI Assistant",
     page_icon="🤖",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("🤖 RRR AI Assistant")
-st.caption("Your personal AI assistant")
+# ---------------- CUSTOM THEME ----------------
 
-# Initialize session state
+st.markdown("""
+<style>
+.stApp {
+    background-color: #0B1220;
+    color: #F1F5F9;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #162338;
+}
+
+[data-testid="stSidebar"] * {
+    color: #F1F5F9;
+}
+
+.main .block-container {
+    padding-top: 2rem;
+    max-width: 1100px;
+}
+
+h1, h2, h3 {
+    color: #F1F5F9 !important;
+}
+
+.stChatInput textarea {
+    color: #F1F5F9;
+}
+
+.stButton button {
+    border-radius: 10px;
+    border: 1px solid #0D9488;
+    background-color: #162338;
+    color: white;
+}
+
+.stButton button:hover {
+    background-color: #0D9488;
+    color: white;
+    border: 1px solid #0D9488;
+}
+
+[data-testid="stChatMessage"] {
+    border: 1px solid #263B55;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+hr {
+    border-color: #263B55;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+
+st.markdown(
+    """
+    <div style="
+        padding: 20px 10px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #162338, #0D9488);
+        text-align: center;
+        margin-bottom: 20px;
+    ">
+        <h1 style="color:white;">
+            🤖 RRR AI Assistant
+        </h1>
+        <p style="color:#E0F2FE;">
+            AI Innovation • Smart Assistance
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- SESSION STATE ----------------
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "documents" not in st.session_state:
     st.session_state.documents = []
 
-# Sidebar
+# ---------------- SIDEBAR ----------------
+
 with st.sidebar:
-    st.title("Settings")
+
+    st.markdown("# 🧠 RRR AI")
+
+    st.caption("AI Assistant")
+
+    st.divider()
 
     if st.button("➕ New Chat", use_container_width=True):
         st.session_state.messages = []
@@ -33,21 +117,29 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("📁 Upload Files")
+    st.subheader("📁 Documents")
 
     uploaded_files = st.file_uploader(
-        "Upload PDF, DOCX or TXT",
+        "Upload your documents",
         type=["pdf", "docx", "txt"],
         accept_multiple_files=True
     )
 
-    if st.button("Process Uploaded Files"):
+    if st.button(
+        "📚 Process Documents",
+        use_container_width=True
+    ):
+
         if uploaded_files:
+
             new_documents = []
 
-            with st.spinner("Reading your files..."):
+            with st.spinner("Processing documents..."):
+
                 for file in uploaded_files:
+
                     chunks = prepare_document(file)
+
                     new_documents.extend(chunks)
 
             st.session_state.documents = new_documents
@@ -55,34 +147,63 @@ with st.sidebar:
             st.success(
                 f"Processed {len(uploaded_files)} file(s)."
             )
-        else:
-            st.warning("Please upload a file first.")
 
-    st.write(
-        f"Document sections: {len(st.session_state.documents)}"
-    )
+        else:
+
+            st.warning("Upload documents first.")
 
     st.divider()
-    st.caption("RRR AI Assistant | Built with Streamlit")
 
-# Display chat history
+    st.metric(
+        "Document Sections",
+        len(st.session_state.documents)
+    )
+
+    if st.button("🗑️ Clear Documents", use_container_width=True):
+
+        st.session_state.documents = []
+
+        st.rerun()
+
+    st.divider()
+
+    st.markdown(
+        """
+        <div style="text-align:center;">
+            <p>RRR AI Assistant</p>
+            <small>AI Innovation Lab</small>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ---------------- CHAT HISTORY ----------------
+
 for message in st.session_state.messages:
+
     with st.chat_message(message["role"]):
+
         st.markdown(message["content"])
 
-# Chat input
-prompt = st.chat_input("Ask RRR AI Assistant anything...")
+# ---------------- CHAT INPUT ----------------
+
+prompt = st.chat_input(
+    "Ask RRR AI Assistant anything..."
+)
 
 if prompt:
+
     st.session_state.messages.append({
         "role": "user",
         "content": prompt
     })
 
     with st.chat_message("user"):
+
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
+
         with st.spinner("Preparing response..."):
 
             relevant_sections = search_documents(
@@ -105,4 +226,3 @@ if prompt:
         "role": "assistant",
         "content": response
     })
-        
