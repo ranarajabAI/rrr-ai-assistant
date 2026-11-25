@@ -1,34 +1,22 @@
 
-import os
-
-
-def generate_response(prompt, document_context=""):
+def generate_response(prompt, context=""):
     """
-    Main AI response function.
-
-    A generative AI provider will be connected here
-    once an eligible provider is selected.
+    RRR AI Assistant AI engine.
+    This is a placeholder until a hosted AI provider is connected.
     """
 
-    if not prompt or not prompt.strip():
-        return "Please enter a question."
+    if context:
+        prompt = f"""
+        Use the following context to answer the user.
 
-    prompt = prompt.strip()
+        Context:
+        {context}
 
-    if document_context:
-        return (
-            "Your question has been received.\n\n"
-            "Relevant document information:\n"
-            f"{document_context[:4000]}\n\n"
-            "The generative AI provider has not yet been connected, "
-            "so I cannot generate an AI answer from this information."
-        )
+        User question:
+        {prompt}
+        """
 
     return (
-        "Welcome to RRR AI Assistant!\n\n"
-        "Your chatbot interface is ready, but a generative AI "
-        "provider has not yet been connected.\n\n"
-        "Please configure an eligible AI provider to enable "
-        "general AI conversations."
+        "The AI engine is not connected yet. "
+        "We need to configure a hosted AI provider to generate answers."
     )
-  
