@@ -1,4 +1,5 @@
 
+import os
 import streamlit as st
 
 from ai_engine import generate_response
@@ -31,14 +32,30 @@ for key, value in defaults.items():
         st.session_state[key] = value
 
 # ==================================================
-# CUSTOM CSS
+# LOGO CONFIGURATION
+# ==================================================
+
+LOGO_FILE = "rrr_brain_logo.png"
+
+def display_logo(width=150):
+
+    if os.path.exists(LOGO_FILE):
+        st.image(LOGO_FILE, width=width)
+    else:
+        st.markdown(
+            f"<div style='font-size:{width//2}px;text-align:center;'>🧠</div>",
+            unsafe_allow_html=True
+        )
+
+# ==================================================
+# THEME
 # ==================================================
 
 st.markdown("""
 <style>
 
 .stApp {
-    background-color: #07111F;
+    background: #07111F;
     color: #EAF6FF;
 }
 
@@ -62,38 +79,28 @@ h1, h2, h3 {
 }
 
 .stButton > button {
-    border-radius: 12px;
     background: #10243B;
     color: #EAF6FF;
     border: 1px solid #087EAA;
+    border-radius: 12px;
     min-height: 42px;
-    transition: 0.2s;
 }
 
 .stButton > button:hover {
     background: #087EAA;
-    border: 1px solid #00E5FF;
     color: white;
+    border: 1px solid #00E5FF;
 }
 
 [data-testid="stChatMessage"] {
     background: #10243B;
     border: 1px solid #164E73;
     border-radius: 16px;
-    padding: 12px;
-    margin-bottom: 12px;
 }
 
 [data-testid="stChatInput"] {
     border: 1px solid #00BCD4;
     border-radius: 16px;
-}
-
-[data-testid="stMetric"] {
-    background: #10243B;
-    border: 1px solid #164E73;
-    border-radius: 12px;
-    padding: 12px;
 }
 
 hr {
@@ -104,48 +111,17 @@ hr {
 """, unsafe_allow_html=True)
 
 # ==================================================
-# LOGO FUNCTION
-# ==================================================
-
-LOGO_FILE = "rrr_brain_logo.png"
-
-def show_logo(width=180):
-
-    try:
-        st.image(LOGO_FILE, width=width)
-
-    except Exception:
-
-        st.markdown(
-            """
-            <div style="
-                text-align:center;
-                padding:15px;
-                border:1px solid #087EAA;
-                border-radius:15px;
-                background:#10243B;
-            ">
-                <div style="font-size:60px;">🧠</div>
-                <h2 style="color:#00E5FF;">RRR</h2>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# ==================================================
 # SIDEBAR
 # ==================================================
 
 with st.sidebar:
 
-    show_logo(180)
+    display_logo(180)
 
     st.markdown("## RRR AI")
     st.caption("AI Innovation • Smart Assistance")
 
     st.divider()
-
-    # NEW CHAT
 
     if st.button("➕ New Chat", use_container_width=True):
 
@@ -156,8 +132,6 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-
-    # NAVIGATION
 
     st.markdown("### Navigation")
 
@@ -179,8 +153,6 @@ with st.sidebar:
 
     st.divider()
 
-    # DOCUMENT UPLOAD
-
     st.markdown("### 📁 Documents")
 
     uploaded_files = st.file_uploader(
@@ -200,7 +172,6 @@ with st.sidebar:
                 for uploaded_file in uploaded_files:
 
                     chunks = prepare_document(uploaded_file)
-
                     all_chunks.extend(chunks)
 
             st.session_state.documents = all_chunks
@@ -216,12 +187,9 @@ with st.sidebar:
         len(st.session_state.documents)
     )
 
-    # CLEAR DOCUMENTS
-
     if st.button("🗑️ Clear Documents", use_container_width=True):
 
         st.session_state.documents = []
-
         st.rerun()
 
     st.divider()
@@ -232,36 +200,21 @@ with st.sidebar:
 # MAIN HEADER
 # ==================================================
 
-header_logo, header_text = st.columns([1, 5])
+logo_col, title_col = st.columns([1, 5])
 
-with header_logo:
+with logo_col:
 
-    show_logo(200)
+    display_logo(160)
 
-with header_text:
+with title_col:
 
-    st.markdown(
-        """
-        <div style="
-            background:linear-gradient(120deg,#0D1B2E,#003F5C,#087EAA);
-            border:1px solid #00BCD4;
-            border-radius:22px;
-            padding:35px 20px;
-            text-align:center;
-        ">
-            <h1 style="color:white;">
-                RRR <span style="color:#00E5FF;">AI Assistant</span>
-            </h1>
+    with st.container(border=True):
 
-            <p style="color:#C8E9FF;">
-                AI Innovation • Smart Assistance
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.title("RRR AI Assistant")
 
-st.write("")
+        st.markdown(
+            "**AI Innovation • Smart Assistance**"
+        )
 
 # ==================================================
 # QUICK ACTIONS
@@ -276,7 +229,6 @@ if st.session_state.active_page == "Chat":
     with col1:
 
         if st.button("💬 Smart Chat", use_container_width=True):
-
             st.session_state.pending_prompt = (
                 "Help me explore what you can do."
             )
@@ -284,7 +236,6 @@ if st.session_state.active_page == "Chat":
     with col2:
 
         if st.button("📄 Document AI", use_container_width=True):
-
             st.session_state.pending_prompt = (
                 "Help me understand a document."
             )
@@ -292,7 +243,6 @@ if st.session_state.active_page == "Chat":
     with col3:
 
         if st.button("💻 Help with Code", use_container_width=True):
-
             st.session_state.pending_prompt = (
                 "Help me write or understand code."
             )
@@ -300,9 +250,8 @@ if st.session_state.active_page == "Chat":
     with col4:
 
         if st.button("🌟 Explain a Topic", use_container_width=True):
-
             st.session_state.pending_prompt = (
-                "Explain an interesting topic to me."
+                "Explain an interesting topic."
             )
 
 # ==================================================
@@ -332,7 +281,6 @@ if (
         with col1:
 
             if st.button("✨ Explain a topic", use_container_width=True):
-
                 st.session_state.pending_prompt = (
                     "Explain an interesting topic."
                 )
@@ -340,7 +288,6 @@ if (
         with col2:
 
             if st.button("📚 Help me study", use_container_width=True):
-
                 st.session_state.pending_prompt = (
                     "Help me study a topic."
                 )
@@ -350,7 +297,6 @@ if (
         with col3:
 
             if st.button("💻 Help me code", use_container_width=True):
-
                 st.session_state.pending_prompt = (
                     "Help me with programming."
                 )
@@ -358,13 +304,12 @@ if (
         with col4:
 
             if st.button("💡 Generate ideas", use_container_width=True):
-
                 st.session_state.pending_prompt = (
                     "Give me creative project ideas."
                 )
 
 # ==================================================
-# HISTORY PAGE
+# HISTORY
 # ==================================================
 
 if st.session_state.active_page == "History":
@@ -376,7 +321,6 @@ if st.session_state.active_page == "History":
         for message in st.session_state.messages:
 
             with st.chat_message(message["role"]):
-
                 st.markdown(message["content"])
 
     else:
@@ -384,7 +328,7 @@ if st.session_state.active_page == "History":
         st.info("No conversation history in this session.")
 
 # ==================================================
-# ABOUT PAGE
+# ABOUT
 # ==================================================
 
 elif st.session_state.active_page == "About":
@@ -394,11 +338,11 @@ elif st.session_state.active_page == "About":
     st.markdown("""
     ## RRR AI Assistant
 
-    An AI assistant project from RRR AI Innovation Lab.
+    An AI assistant from RRR AI Innovation Lab.
 
-    ### Project goals
+    ### Features
 
-    - AI-powered conversations
+    - Generative AI conversations
     - Document assistance
     - Learning and explanations
     - Programming assistance
@@ -413,7 +357,7 @@ elif st.session_state.active_page == "About":
     """)
 
 # ==================================================
-# SETTINGS PAGE
+# SETTINGS
 # ==================================================
 
 elif st.session_state.active_page == "Settings":
@@ -423,47 +367,42 @@ elif st.session_state.active_page == "Settings":
     st.markdown("""
     ### Application Settings
 
-    - **Application:** RRR AI Assistant
-    - **Interface:** Dark navy and cyan theme
-    - **Documents:** PDF, DOCX, TXT
-    - **AI engine:** ai_engine.py
+    - Application: RRR AI Assistant
+    - Theme: Dark navy and cyan
+    - Documents: PDF, DOCX, TXT
+    - AI engine: ai_engine.py
     """)
 
     if st.button("Clear Chat History"):
 
         st.session_state.messages = []
-
         st.rerun()
 
 # ==================================================
-# CHAT PAGE
+# CHAT
 # ==================================================
 
 if st.session_state.active_page == "Chat":
 
-    # DISPLAY CHAT HISTORY
+    # DISPLAY PREVIOUS MESSAGES
 
     for message in st.session_state.messages:
 
         with st.chat_message(message["role"]):
-
             st.markdown(message["content"])
 
     # CHAT INPUT
 
-    prompt = st.chat_input(
-        "Ask RRR AI Assistant anything..."
-    )
+    prompt = st.chat_input("Ask RRR AI Assistant anything...")
 
-    # QUICK ACTION PROMPT
+    # QUICK ACTION
 
     if st.session_state.pending_prompt:
 
         prompt = st.session_state.pending_prompt
-
         st.session_state.pending_prompt = None
 
-    # PROCESS PROMPT
+    # RESPONSE GENERATION
 
     if prompt:
 
@@ -473,10 +412,7 @@ if st.session_state.active_page == "Chat":
         })
 
         with st.chat_message("user"):
-
             st.markdown(prompt)
-
-        # AI RESPONSE
 
         with st.chat_message("assistant"):
 
@@ -497,8 +433,6 @@ if st.session_state.active_page == "Chat":
                 )
 
                 st.markdown(response)
-
-        # SAVE RESPONSE
 
         st.session_state.messages.append({
             "role": "assistant",
